@@ -9,6 +9,7 @@ import authRoutes from "./src/routes/authRoutes.js";
 import boardRoutes from "./src/routes/boardRoutes.js";
 import columnRoutes from "./src/routes/columnRoutes.js";
 import taskRoutes from "./src/routes/taskRoutes.js";
+import userRoutes from "./src/routes/userRoutes.js";
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/boards", boardRoutes);
 app.use("/api/columns", columnRoutes);
 app.use("/api/tasks", taskRoutes);
+app.use("/api/users", userRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

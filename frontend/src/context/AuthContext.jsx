@@ -39,13 +39,19 @@ export function AuthProvider({ children }) {
   const loginDemo = () => {
     setUser({ name: "Demo User", email: "demo@kanban.dev", role: "owner" });
   };
+  const updateUser = (updatedUser) => {
+    setUser(updatedUser);
+    try { localStorage.setItem("user", JSON.stringify(updatedUser)); } catch {}
+  };
+
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, loginDemo, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, loginDemo, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
