@@ -1,26 +1,30 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ["./index.html", "./src/**/*.{js,jsx}"],
+  // Enables `dark:` prefix when [data-theme="dark"] is on any ancestor (set by ThemeContext on <html>)
+  darkMode: ["class", "[data-theme='dark']"],
   theme: {
     extend: {
       colors: {
-        bg: "#09090B",
-        surface: "#111214",
-        sidebar: "#0D0D0F",
-        elevated: "#17181B",
-        line: "#1F2024",
-        accent: "#6366F1",
+        // Theme-switching colors via CSS custom properties (defined in index.css)
+        bg:       "var(--color-bg)",
+        surface:  "var(--color-surface)",
+        sidebar:  "var(--color-sidebar)",
+        elevated: "var(--color-elevated)",
+        line:     "var(--color-line)",
+        ink:      "var(--color-ink)",
+        muted:    "var(--color-muted)",
+        faint:    "var(--color-faint)",
+        // Accent colours stay fixed in both themes
+        accent:       "#6366F1",
         "accent-soft": "#818CF8",
-        success: "#22C55E",
-        warning: "#F59E0B",
-        danger: "#EF4444",
-        violet: "#A855F7",
-        ink: "#F8FAFC",
-        muted: "#94A3B8",
-        faint: "#5B616E",
+        success:  "#22C55E",
+        warning:  "#F59E0B",
+        danger:   "#EF4444",
+        violet:   "#A855F7",
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        sans:    ["Inter", "system-ui", "sans-serif"],
         display: ["'Clash Display'", "Inter", "sans-serif"],
       },
       borderRadius: { xl2: "1.25rem", xl3: "1.75rem" },
@@ -31,7 +35,7 @@ export default {
       },
       keyframes: {
         "fade-up": { "0%": { opacity: 0, transform: "translateY(8px)" }, "100%": { opacity: 1, transform: "none" } },
-        shimmer: { "100%": { transform: "translateX(100%)" } },
+        shimmer:   { "100%": { transform: "translateX(100%)" } },
       },
       animation: { "fade-up": "fade-up .4s ease both" },
     },

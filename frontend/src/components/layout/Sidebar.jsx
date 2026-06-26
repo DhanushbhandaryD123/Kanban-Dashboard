@@ -6,13 +6,14 @@ import {
   ChevronsLeft, Search, Plus, Hexagon,
 } from "lucide-react";
 import api from "../../lib/api";
+import { demoColumns, demoMembers } from "../../lib/demoData";
 
 const nav = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
-  { to: "/board", label: "Boards", icon: KanbanSquare },
-  { to: "/favorites", label: "Favorites", icon: Star },
-  { to: "/recent", label: "Recent", icon: Clock },
-  { to: "/archive", label: "Archive", icon: Archive },
+  { to: "/",         label: "Dashboard", icon: LayoutDashboard, end: true },
+  { to: "/board",    label: "Boards",    icon: KanbanSquare },
+  { to: "/favorites",label: "Favorites", icon: Star },
+  { to: "/recent",   label: "Recent",    icon: Clock },
+  { to: "/archive",  label: "Archive",   icon: Archive },
 ];
 
 export default function Sidebar({ onOpenPalette }) {
@@ -22,14 +23,50 @@ export default function Sidebar({ onOpenPalette }) {
 
   const handleNewBoard = async () => {
     const title = window.prompt("Board name", "Untitled board");
-    if (!title) return;
+    if (!title?.trim()) return;
+    const trimmedTitle = title.trim();
+
+    // Demo mode: no JWT token in localStorage
+    const isDemo = !localStorage.getItem("token");
+    if (isDemo) {
+      const newBoardId = crypto.randomUUID();
+      const freshCols  = demoColumns.map(c => ({ ...c, _id: crypto.randomUUID() }));
+      const freshState = { columns: freshCols, tasks: [], members: demoMembers };
+
+      // Write to localStorage so the board survives a hard refresh
+      try {
+        localStorage.setItem("kanban_demo_state", JSON.stringify(freshState));
+      } catch {}
+
+      // Signal BoardPage if it's currently mounted (client-side nav to /board)
+      window.dispatchEvent(new CustomEvent("demo:board:switch", {
+        detail: {
+          board:   { _id: newBoardId, title: trimmedTitle },
+          columns: freshCols,
+          tasks:   [],
+          members: demoMembers,
+        },
+      }));
+
+      navigate("/board");
+      return;
+    }
+
     try {
-      await api.post("/boards", { title: title.trim() || "Untitled board" });
+      await api.post("/boards", { title: trimmedTitle });
       navigate("/board");
     } catch (err) {
       console.error("Create board failed:", err);
     }
   };
+
+  // Theme-aware active/hover style for nav items
+  const navClass = ({ isActive }) =>
+    `group relative flex items-center gap-3 rounded-xl h-10 text-sm font-medium transition
+     ${collapsed ? "justify-center" : "px-3"}
+     ${isActive
+       ? "text-ink bg-black/5 dark:bg-white/5"
+       : "text-muted hover:text-ink hover:bg-black/5 dark:hover:bg-white/5"}`;
 
   return (
     <motion.aside
@@ -47,7 +84,7 @@ export default function Sidebar({ onOpenPalette }) {
       {!collapsed && (
         <button
           onClick={() => setCollapsed(true)}
-          className="absolute -right-3 top-16 w-6 h-6 rounded-full bg-elevated border border-line grid place-items-center text-muted hover:text-ink"
+          className="absolute -right-3 top-16 w-6 h-6 rounded-full bg-elevated border border-line grid place-items-center text-muted hover:text-ink hover:bg-black/5 dark:hover:bg-white/5"
         >
           <ChevronsLeft size={14} />
         </button>
@@ -55,7 +92,7 @@ export default function Sidebar({ onOpenPalette }) {
       {collapsed && (
         <button
           onClick={() => setCollapsed(false)}
-          className="mx-auto mt-1 w-8 h-8 rounded-lg grid place-items-center text-muted hover:text-ink hover:bg-white/5"
+          className="mx-auto mt-1 w-8 h-8 rounded-lg grid place-items-center text-muted hover:text-ink hover:bg-black/5 dark:hover:bg-white/5"
         >
           <ChevronsLeft size={16} className="rotate-180" />
         </button>
@@ -71,20 +108,18 @@ export default function Sidebar({ onOpenPalette }) {
       </button>
 
       <nav className="mt-5 flex flex-col gap-1">
-        {!collapsed && <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-faint">Workspace</p>}
+        {!collapsed && (
+          <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-faint">Workspace</p>
+        )}
         {nav.map(({ to, label, icon: Icon, end }) => (
-          <NavLink key={to} to={to} end={end}
-            className={({ isActive }) =>
-              `group relative flex items-center gap-3 rounded-xl h-10 text-sm font-medium transition
-               ${collapsed ? "justify-center" : "px-3"}
-               ${isActive ? "text-ink bg-white/5" : "text-muted hover:text-ink hover:bg-white/5"}`
-            }
-          >
+          <NavLink key={to} to={to} end={end} className={navClass}>
             {({ isActive }) => (
               <>
                 {isActive && (
-                  <motion.span layoutId="active-pill"
-                    className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-accent" />
+                  <motion.span
+                    layoutId="active-pill"
+                    className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-accent"
+                  />
                 )}
                 <Icon size={18} className="shrink-0" />
                 {!collapsed && <span>{label}</span>}
@@ -98,8 +133,10 @@ export default function Sidebar({ onOpenPalette }) {
         <button onClick={handleNewBoard} className={`btn-primary w-full ${collapsed ? "!px-0" : ""}`}>
           <Plus size={16} />{!collapsed && "New board"}
         </button>
-        <NavLink to="/settings"
-          className={`mt-2 flex items-center gap-3 rounded-xl h-10 text-sm text-muted hover:text-ink hover:bg-white/5 ${collapsed ? "justify-center" : "px-3"}`}>
+        <NavLink
+          to="/settings"
+          className={`mt-2 flex items-center gap-3 rounded-xl h-10 text-sm text-muted hover:text-ink hover:bg-black/5 dark:hover:bg-white/5 ${collapsed ? "justify-center" : "px-3"}`}
+        >
           <Settings size={18} />{!collapsed && "Settings"}
         </NavLink>
       </div>

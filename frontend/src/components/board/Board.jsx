@@ -8,54 +8,33 @@ export default function Board({
   onMove,
   onAddTask,
   onOpenTask,
+  onEditColumn,
+  onDeleteColumn,
 }) {
-
-  const tasksByColumn = (columnId) => {
-    return tasks
+  const tasksByColumn = (columnId) =>
+    tasks
       .filter((task) => (task.column?._id || task.column) === columnId)
       .sort((a, b) => a.order - b.order);
-  };
 
   const onDragEnd = (result) => {
     const { source, destination, draggableId } = result;
-
     if (!destination) return;
+    if (source.droppableId === destination.droppableId && source.index === destination.index) return;
 
-    if (
-      source.droppableId === destination.droppableId &&
-      source.index === destination.index
-    )
-      return;
-
-    const movedTask = tasks.find((task) => task._id === draggableId);
-
+    const movedTask = tasks.find((t) => t._id === draggableId);
     if (!movedTask) return;
 
-    const remaining = tasks.filter((task) => task._id !== draggableId);
+    const remaining = tasks.filter((t) => t._id !== draggableId);
 
     const destinationTasks = remaining
-      .filter(
-        (task) =>
-          (task.column?._id || task.column) === destination.droppableId
-      )
+      .filter((t) => (t.column?._id || t.column) === destination.droppableId)
       .sort((a, b) => a.order - b.order);
 
-    const updatedTask = {
-      ...movedTask,
-      column: destination.droppableId,
-    };
-
+    const updatedTask = { ...movedTask, column: destination.droppableId };
     destinationTasks.splice(destination.index, 0, updatedTask);
 
-    const reordered = destinationTasks.map((task, index) => ({
-      ...task,
-      order: index,
-    }));
-
-    const otherTasks = remaining.filter(
-      (task) =>
-        (task.column?._id || task.column) !== destination.droppableId
-    );
+    const reordered = destinationTasks.map((t, index) => ({ ...t, order: index }));
+    const otherTasks = remaining.filter((t) => (t.column?._id || t.column) !== destination.droppableId);
 
     setTasks([...otherTasks, ...reordered]);
 
@@ -63,7 +42,7 @@ export default function Board({
       onMove({
         taskId: draggableId,
         toColumn: destination.droppableId,
-        orderedIds: reordered.map((task) => task._id),
+        orderedIds: reordered.map((t) => t._id),
       });
     }
   };
@@ -78,6 +57,8 @@ export default function Board({
             tasks={tasksByColumn(column._id)}
             onAddTask={onAddTask}
             onOpenTask={onOpenTask}
+            onEditColumn={onEditColumn}
+            onDeleteColumn={onDeleteColumn}
           />
         ))}
       </div>
